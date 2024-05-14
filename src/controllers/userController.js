@@ -10,11 +10,13 @@ export const create = async (req , res) =>{
             return res.status(400).json({message:`El usuario con ${email} ya existe`})
         }
 
-        const savedUser= await userData.save()
-        res.status(200).json(savedUser);
+        const savedUser= await userData.save();
+
+        const { password, ...rest } = savedUser;
+        res.status(200).json(rest);
 
     } catch (error) {
-        res.status(500).json({error:"Internal server error"})
+        res.status(500).json({message:"Internal server error",error})
     }
 
 };
@@ -28,7 +30,7 @@ export const get = async (req , res)=>{
         }
         res.status(200).json(users)
     } catch (error) {
-        res.status(500).json({error:"Internal server error"})
+        res.status(500).json({message:"Internal server error", error})
         
     }
 
@@ -45,7 +47,7 @@ export const update = async (req, res) => {
         const updateUser = await User.findByIdAndUpdate({_id: id}, req.body,{new: true});
         res.status(201).json(updateUser);
     } catch (error) {
-        res.status(500).json({error: "internal server error "})
+        res.status(500).json({message: "internal server error ", error})
         
     }
 }
@@ -58,10 +60,10 @@ export const deleteUser = async (req, res) => {
         if(!userExist){
             return res.status(404).json({message:"User not found"}); 
         }
-        await User.findByIdAndDelete(_id);
+        await User.findByIdAndDelete(id);
         res.status(201).json({message: "User deleted successfully"})
     } catch (error) {
-        res.status(500).json({error: "internal server error "})
+        res.status(500).json({message: "internal server error ", error})
     }
 
 } 
