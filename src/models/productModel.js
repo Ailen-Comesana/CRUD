@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
 
-const { Schema } = mongoose;
+
 
 const statusEnum = ["AVAILABLE", "NOT AVAILABLE", "DISCONTINUED"];
 
-const productSchema = new Schema({
+const productSchema = new mongoose.Schema({
 
     name:{
         type: String,
@@ -35,11 +35,11 @@ const productSchema = new Schema({
         message: props => `${props.value} No es un estado valido`
 
     },
-    category: String,
+    category: {type: mongoose.Schema.Types.ObjectId, ref:"category" },
     destacado: Boolean
 });
 
 
 productSchema.set("toJSON", {gettters: true, setters: true});
 
-export default mongoose.model("Product", productSchema);
+export default mongoose.model("product", productSchema);

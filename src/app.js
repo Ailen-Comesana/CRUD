@@ -4,6 +4,7 @@ import { PORT } from "./config.js";
 import {connectDB} from "./db.js"
 import userRoute from "./routes/userRoute.js";
 import productRoute from "./routes/productRoute.js";
+import categoryRoute from "./routes/categoryRoute.js";
 
 
 const  app= express();
@@ -31,3 +32,7 @@ app.use("/api/user", userRoute);
 //rutas de producto
 
 app.use("/api/product", productRoute);
+
+//rutas de categorias
+app.use("/api/category", categoryRoute);
+
