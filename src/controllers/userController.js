@@ -1,4 +1,5 @@
 import User from "../models/userModel.js";
+import bcrypt from "bcrypt";
 
 export const create = async (req , res) =>{
     try { 
@@ -66,6 +67,21 @@ export const deleteUser = async (req, res) => {
         res.status(500).json({message: "internal server error ", error})
     }
 
-} 
+}; 
 
-
+export const validate = async (req,res) => {
+    try {
+        const userFound = await User.findOne({email: req.body.email});
+        if(!userFound){
+            res.status(400).json({message: "Email y/o contraseña son incorrectos"})
+        }
+        if(bcrypt.compareSync(req.body.password, userFound.password)){
+            res.status(200).json({message:"Valid Login"});
+        }else{
+            res.status(400).json({message:"Email y/o contraseña son incorrectos"});
+            return;
+        }
+    } catch (error) {
+         res.status(500).json({message: "internal server error ", error})
+    }
+}

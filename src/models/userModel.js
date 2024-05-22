@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 import { isGoodPassword } from "../utils/validators.js";
+import bcrypt from "bcrypt";
+
 
 const carreraEnum = ["ingenieria", "desarrollo full stack", "data science", "data analytics"];
 
@@ -64,5 +66,11 @@ const userSchema = new mongoose.Schema({
 
 
 });
+
+userSchema.pre("save",function(next){
+    this.password = bcrypt.hashSync(this.password, 10)
+    next();
+
+})
 
 export default mongoose.model("user", userSchema );
