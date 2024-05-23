@@ -1,6 +1,8 @@
 import User from "../models/userModel.js";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken"
+import jwt from "jsonwebtoken";
+
+
 
 export const create = async (req , res) =>{
     try { 
@@ -12,10 +14,12 @@ export const create = async (req , res) =>{
             return res.status(400).json({message:`El usuario con ${email} ya existe`})
         }
 
-        const savedUser= await userData.save();
+    await userData.save();
 
-        const { password, ...rest } = savedUser;
-        res.status(200).json(rest);
+        // const { password, ...rest } = savedUser;
+        // res.status(200).json(rest);
+
+        res.render("home")
 
     } catch (error) {
         res.status(500).json({message:"Internal server error",error})
@@ -26,11 +30,11 @@ export const create = async (req , res) =>{
 
 export const get = async (req , res)=>{
     try {
-        const users= await User.find();
+        const users= await User.find().lean();
         if(users.length === 0){
             return res.status(404).json({message:"There are no users"});
         }
-        res.status(200).json(users)
+        res.render("getAll", { users: users, titulo: "Todos los usuarios" });
     } catch (error) {
         res.status(500).json({message:"Internal server error", error})
         
@@ -46,8 +50,8 @@ export const update = async (req, res) => {
         if(!userExist){
             return res.status(404).json({message:"User not found"});   
         }
-        const updateUser = await User.findByIdAndUpdate({_id: id}, req.body,{new: true});
-        res.status(201).json(updateUser);
+        await User.findByIdAndUpdate({_id: id}, req.body,{new: true});
+        res.redirect("/api/user/getAll");
     } catch (error) {
         res.status(500).json({message: "internal server error ", error})
         
@@ -57,13 +61,13 @@ export const update = async (req, res) => {
 
 export const deleteUser = async (req, res) => {
     try {
-        const id = req.params.id
+        const _id = req.params.id
         const userExist = await User.findOne({_id});
         if(!userExist){
             return res.status(404).json({message:"User not found"}); 
         }
-        await User.findByIdAndDelete(id);
-        res.status(201).json({message: "User deleted successfully"})
+        await User.findByIdAndDelete(_id);
+        res.redirect("/api/user/getAll")
     } catch (error) {
         res.status(500).json({message: "internal server error ", error})
     }
@@ -78,19 +82,52 @@ export const validate = async (req,res) => {
             res.status(400).json({message: "Email y/o contraseña son incorrectos"})
         }
         if(bcrypt.compareSync(req.body.password, userFound.password)){
-          
             const payload = {
                 userId: userFound._id,
                 userEmail: userFound.email,
             };
             const token = jwt.sign(payload, "secreto", {expiresIn: "1h"});
-            res.status(200).json({token});
-           
+            req.session.token = token ;
+            console.log(req.session.token)
+            res.redirect("/api/user/getAll")
         }else{
             res.status(400).json({message:"Email y/o contraseña son incorrectos"});
             return;
         }
     } catch (error) {
-         res.status(500).json({message: "internal server error ", error})
+        res.status(500).json({message: "internal server error ", error})
     }
+}
+
+
+
+
+
+
+export const updateView = async (req, res) => {
+    try {
+        const _id = req.params.id;
+        const userFound = await User.findOne({_id}).lean();
+    if(!userFound){
+        console.log("error")
+        }
+    res.render("update", {user: userFound});
+    } catch (error) {
+    res.status(500).json({message: "internal server error ", error})
+   }
+};
+
+
+export const loginView = (req , res) => {
+    res.render("login");
+};
+
+
+export const destroySession = (req, res) =>{
+    req.session.destroy((error)=>{
+        if(error){
+            console.log("error al destruir la sesion")
+        }
+        res.redirect("/api/user/login");
+    })
 }
